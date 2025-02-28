@@ -1,17 +1,20 @@
-import faiss
 import os
+import faiss
 import google.generativeai as genai
 from sentence_transformers import SentenceTransformer
 import numpy as np
-import re
 import nltk
 from flask import Flask, request, jsonify
 
+# Setup NLTK
 nltk.download("punkt", download_dir="/usr/local/nltk_data")
 nltk.data.path.append("/usr/local/nltk_data")
 
 # Load cleaned transcript
 TRANSCRIPT_FILE = "cleaned_transcript.txt"
+if not os.path.exists(TRANSCRIPT_FILE):
+    raise FileNotFoundError(f"Transcript file '{TRANSCRIPT_FILE}' not found!")
+
 with open(TRANSCRIPT_FILE, "r", encoding="utf-8") as f:
     cleaned_text = f.read()
 
@@ -55,7 +58,10 @@ print(f"Stored {len(chunks)} chunks in FAISS!")
 app = Flask(__name__)
 
 # Configure Gemini API
-genai.configure(api_key="AIzaSyB4VqnPfl_Y98HL42QWLMXfQstpTZljzGY")
+api_key = os.environ.get("GEMINI_API_KEY")  # Read API key from environment
+if not api_key:
+    raise ValueError("GEMINI_API_KEY is not set in environment variables!")
+genai.configure(api_key=api_key)
 
 # Function to retrieve relevant text using FAISS
 def retrieve_relevant_text(query):
