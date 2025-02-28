@@ -2,5 +2,6 @@ flask
 faiss-cpu
 sentence-transformers
 google-generativeai
+numpy
 nltk
 gunicorn
