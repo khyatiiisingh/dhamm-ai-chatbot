@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import re
 import nltk
+from flask import Flask, request, jsonify
 
 nltk.download("punkt", download_dir="/usr/local/nltk_data")
 nltk.data.path.append("/usr/local/nltk_data")
@@ -50,8 +51,11 @@ index.add(query_embeddings)
 
 print(f"Stored {len(chunks)} chunks in FAISS!")
 
+# Initialize Flask
+app = Flask(__name__)
+
 # Configure Gemini API
-genai.configure(api_key="YOUR_GEMINI_API_KEY")
+genai.configure(api_key="AIzaSyB4VqnPfl_Y98HL42QWLMXfQstpTZljzGY")
 
 # Function to retrieve relevant text using FAISS
 def retrieve_relevant_text(query):
@@ -77,18 +81,19 @@ def generate_response(query):
 
     return response.text
 
-# Gradio Chatbot
-def chatbot(query):
-    if query.lower() == "exit":
-        return "Goodbye!"
-    return generate_response(query)
+# Define Flask API endpoint
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    query = data.get("query", "")
 
-iface = gr.Interface(
-    fn=chatbot,
-    inputs=gr.Textbox(placeholder="Ask anything from the lecture..."),
-    outputs="text",
-    title="Dhamm AI Chatbot",
-    description="Ask questions and get AI-generated answers!"
-)
+    if not query:
+        return jsonify({"error": "Query is required"}), 400
 
-iface.launch()
+    response = generate_response(query)
+    return jsonify({"response": response})
+
+# Correct Port Binding for Render
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Render assigns PORT dynamically
+    app.run(host="0.0.0.0", port=port, debug=True)
