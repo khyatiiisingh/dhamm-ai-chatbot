@@ -5,7 +5,6 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import re
 import nltk
-import gradio as gr
 
 nltk.download("punkt", download_dir="/usr/local/nltk_data")
 nltk.data.path.append("/usr/local/nltk_data")
