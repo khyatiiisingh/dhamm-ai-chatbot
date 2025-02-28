@@ -6,11 +6,14 @@ import numpy as np
 import nltk
 from flask import Flask, request, jsonify
 
-# Set a writable directory for NLTK
 NLTK_DIR = os.path.join(os.getcwd(), "nltk_data")
 os.makedirs(NLTK_DIR, exist_ok=True)
 
+# Download required NLTK packages
 nltk.download("punkt", download_dir=NLTK_DIR)
+nltk.download("punkt_tab", download_dir=NLTK_DIR)
+
+# Add the directory to NLTK's data path
 nltk.data.path.append(NLTK_DIR)
 
 
