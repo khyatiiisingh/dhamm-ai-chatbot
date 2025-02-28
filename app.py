@@ -6,9 +6,13 @@ import numpy as np
 import nltk
 from flask import Flask, request, jsonify
 
-# Setup NLTK
-nltk.download("punkt", download_dir="/usr/local/nltk_data")
-nltk.data.path.append("/usr/local/nltk_data")
+# Set a writable directory for NLTK
+NLTK_DIR = os.path.join(os.getcwd(), "nltk_data")
+os.makedirs(NLTK_DIR, exist_ok=True)
+
+nltk.download("punkt", download_dir=NLTK_DIR)
+nltk.data.path.append(NLTK_DIR)
+
 
 # Load cleaned transcript
 TRANSCRIPT_FILE = "cleaned_transcript.txt"
