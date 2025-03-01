@@ -2,9 +2,8 @@ services:
   - type: web
     name: my-flask-app
     env: python
-    plan: free
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app"
+    startCommand: "python app.py"
     envVars:
-      - key: GEMINI_API_KEY
-        sync: false  # Set in Render's dashboard
+      - key: PORT
+        value: 5000
