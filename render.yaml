@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: my-flask-app
+    name: my-fastapi-app
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python app.py"
+    startCommand: "uvicorn app:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PORT
         value: 5000
+
