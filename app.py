@@ -4,11 +4,13 @@ import google.generativeai as genai
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import nltk
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import uvicorn
 
 
+# Ensure NLTK uses the correct path
 nltk.data.path.append(r"C:\Users\khyati singh\AppData\Roaming\nltk_data")
-
 
 # Load cleaned transcript
 TRANSCRIPT_FILE = "cleaned_transcript.txt"
@@ -55,8 +57,8 @@ index.add(query_embeddings)
 
 print(f"Stored {len(chunks)} chunks in FAISS!")
 
-# Initialize Flask
-app = Flask(__name__)
+# Initialize FastAPI
+app = FastAPI(title="LMS Chatbot API", description="Chatbot powered by FAISS and Gemini API.")
 
 # Configure Gemini API
 api_key = os.environ.get("GEMINI_API_KEY")  # Read API key from environment
@@ -64,15 +66,19 @@ if not api_key:
     raise ValueError("GEMINI_API_KEY is not set in environment variables!")
 genai.configure(api_key=api_key)
 
+# Request Model for FastAPI
+class QueryRequest(BaseModel):
+    query: str
+
 # Function to retrieve relevant text using FAISS
-def retrieve_relevant_text(query):
+def retrieve_relevant_text(query: str) -> str:
     query_embedding = embedding_model.encode(query).reshape(1, -1)
     _, result_indices = index.search(query_embedding, k=3)
     retrieved_texts = [chunk_map[i] for i in result_indices[0]]
     return "\n".join(retrieved_texts)
 
 # Generate AI response
-def generate_response(query):
+def generate_response(query: str) -> str:
     relevant_text = retrieve_relevant_text(query)
 
     prompt = f"""
@@ -88,19 +94,18 @@ def generate_response(query):
 
     return response.text if response.text else "I'm sorry, I couldn't generate a response."
 
-# Define Flask API endpoint
-@app.route("/chat", methods=["POST"])
-def chat():
-    data = request.get_json()
-    query = data.get("query", "").strip()
+# Define FastAPI endpoint
+@app.post("/chat")
+async def chat(request: QueryRequest):
+    query = request.query.strip()
 
     if not query:
-        return jsonify({"error": "Query is required"}), 400
+        raise HTTPException(status_code=400, detail="Query is required")
 
     response = generate_response(query)
-    return jsonify({"response": response})
+    return {"response": response}
 
-# Correct Port Binding for Render
+# Run FastAPI with Uvicorn
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))  # Render assigns PORT dynamically
+    uvicorn.run(app, host="0.0.0.0", port=port)
