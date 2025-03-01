@@ -6,9 +6,11 @@ import numpy as np
 import nltk
 from flask import Flask, request, jsonify
 
-# Download required NLTK packages
+# Set up NLTK Data Directory
+NLTK_DIR = os.path.join(os.getcwd(), "nltk_data")
+os.makedirs(NLTK_DIR, exist_ok=True)
 nltk.download("punkt", download_dir=NLTK_DIR)
-nltk.data.path.append(r"C:\Users\khyati singh\AppData\Roaming\nltk_data")
+nltk.data.path.append(NLTK_DIR)
 
 # Load cleaned transcript
 TRANSCRIPT_FILE = "cleaned_transcript.txt"
@@ -102,6 +104,5 @@ def chat():
 
 # Correct Port Binding for Render
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Render assigns PORT dynamically
+    port = int(os.environ.get("PORT", 10000))  # Default to 5000 if PORT is not set
     app.run(host="0.0.0.0", port=port)
-
