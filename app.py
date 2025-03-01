@@ -6,16 +6,13 @@ import numpy as np
 import nltk
 from flask import Flask, request, jsonify
 
+# Set up NLTK data directory
 NLTK_DIR = os.path.join(os.getcwd(), "nltk_data")
 os.makedirs(NLTK_DIR, exist_ok=True)
+nltk.data.path.append(NLTK_DIR)
 
 # Download required NLTK packages
 nltk.download("punkt", download_dir=NLTK_DIR)
-nltk.download("punkt_tab", download_dir=NLTK_DIR)
-
-# Add the directory to NLTK's data path
-nltk.data.path.append(NLTK_DIR)
-
 
 # Load cleaned transcript
 TRANSCRIPT_FILE = "cleaned_transcript.txt"
@@ -23,8 +20,9 @@ if not os.path.exists(TRANSCRIPT_FILE):
     raise FileNotFoundError(f"Transcript file '{TRANSCRIPT_FILE}' not found!")
 
 with open(TRANSCRIPT_FILE, "r", encoding="utf-8") as f:
-    cleaned_text = f.read()
+    cleaned_text = f.read().strip()
 
+# Tokenize transcript into sentences
 from nltk.tokenize import sent_tokenize
 sentences = sent_tokenize(cleaned_text)
 
@@ -92,13 +90,13 @@ def generate_response(query):
     model = genai.GenerativeModel("gemini-1.5-pro-latest")
     response = model.generate_content(prompt)
 
-    return response.text
+    return response.text if response.text else "I'm sorry, I couldn't generate a response."
 
 # Define Flask API endpoint
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
-    query = data.get("query", "")
+    query = data.get("query", "").strip()
 
     if not query:
         return jsonify({"error": "Query is required"}), 400
@@ -110,3 +108,4 @@ def chat():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Render assigns PORT dynamically
     app.run(host="0.0.0.0", port=port, debug=True)
+
